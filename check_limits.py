@@ -34,7 +34,8 @@ class battery:
     for attribute in self.attributes:
       overLimitAttributes[attribute] = isUpLimitNotReached(self.attributes[attribute],self.MAX_VALUES[attribute])
       underLimitAttributes[attribute] = isDownLimitNotReached(self.attributes[attribute],self.MIN_VALUES[attribute])
-      batteryOK = batteryOK and overLimitAttributes[attribute] and underLimitAttributes[attribute]
+      batteryOK &= overLimitAttributes[attribute]
+      batteryOK &= underLimitAttributes[attribute]
     printOverLimit(overLimitAttributes)
     printUnderLimit(underLimitAttributes)
     return batteryOK
