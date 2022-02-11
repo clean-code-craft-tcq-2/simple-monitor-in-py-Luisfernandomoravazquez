@@ -11,20 +11,14 @@ def isDownLimitNotReached(value, min_value):
     return False
 
 def printOverLimit(overLimitAttributes):
-  toPrint = []
   for attribute in overLimitAttributes:
     if(overLimitAttributes[attribute] == False):
-      toPrint.append(attribute)
-  for element in toPrint:
-    print(element + " is over limit")
+      print(attribute + " is over limit")
 
 def printUnderLimit(underLimitAttributes):
-  toPrint = []
   for attribute in underLimitAttributes:
     if(underLimitAttributes[attribute] == False):
-      toPrint.append(attribute)
-  for element in toPrint:
-    print(element + " is under limit")
+      print(attribute + " is under limit")
 class battery:
   def __init__(self, temperature, stateOfCharge, chargeRate):
     self.attributes = {"temperature" : temperature, "stateOfCharge" : stateOfCharge, "chargeRate" : chargeRate}
