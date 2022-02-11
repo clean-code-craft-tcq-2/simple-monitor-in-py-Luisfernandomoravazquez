@@ -25,20 +25,25 @@ def outOfRangeAlert(reasons):
     print(messagetoPrint)
 
 def battery_is_ok(temperature, soc, charge_rate):
-  invalidValues = []
+  batteryWrong = False
+  batteryWrong |= value_is_out_of_umbrall(temperature,0,45)
+  batteryWrong |= value_is_out_of_umbrall(soc,20,80)
+  batteryWrong |= value_is_out_of_umbrall(charge_rate,max_value=0.8)
+  return not batteryWrong
+  # invalidValues = []
 
-  if(value_is_out_of_umbrall(temperature,0,45)):
-    invalidValues.append("Temperature")
-  if(value_is_out_of_umbrall(soc,20,80)):
-    invalidValues.append("State of charge")
-  if(value_is_out_of_umbrall(charge_rate,max_value=0.8)):
-    invalidValues.append("Charge rate")
+  # if(value_is_out_of_umbrall(temperature,0,45)):
+  #   invalidValues.append("Temperature")
+  # if(value_is_out_of_umbrall(soc,20,80)):
+  #   invalidValues.append("State of charge")
+  # if(value_is_out_of_umbrall(charge_rate,max_value=0.8)):
+  #   invalidValues.append("Charge rate")
 
-  if(invalidValues):
-    outOfRangeAlert(invalidValues)
-    return False
+  # if(invalidValues):
+  #   outOfRangeAlert(invalidValues)
+  #   return False
 
-  return True
+  # return True
 
 if __name__ == '__main__':
   #Test everything valid
