@@ -1,49 +1,32 @@
-def value_is_out_of_umbrall(value,min_value="NA",max_value="NA"):
-  validValue = False
-  if(min_value != "NA"):
-    if(value<min_value):
-      validValue = True
-  if(max_value != "NA"):
-    if(value>max_value):
-      validValue = True
-  return validValue
+def isUpLimitNotReached(value, max_value):
+  if(max_value == "NA" or value <= max_value):
+    return True
+  else:
+    return False
 
-def outOfRangeAlert(reasons):
-  if(reasons):
-    messagetoPrint = ""
-    number_of_reasons = len(reasons)
-    if(number_of_reasons==1):
-      messagetoPrint += reasons[0] + " is out of range"
-    else:
-      for i,reason in enumerate(reasons):
-        if(i+1 == number_of_reasons):
-          messagetoPrint = messagetoPrint[:-2]
-          messagetoPrint += " and "+reason
-        else:
-          messagetoPrint += reason + ", "
-      messagetoPrint += " are out of range"
-    print(messagetoPrint)
+def isDownLimitNotReached(value, min_value):
+  if(min_value == "NA" or value >= min_value):
+    return True
+  else:
+    return False
+class battery:
+  def __init__(self, temperature, stateOfCharge, chargeRate):
+    self.attributes = {"temperature" : temperature, "stateOfCharge" : stateOfCharge, "chargeRate" : chargeRate}
+
+  MIN_VALUES = {"temperature":0,"stateOfCharge":20,"chargeRate":"NA"}
+  MAX_VALUES = {"temperature":45,"stateOfCharge":80,"chargeRate":0.8}
+  
+
+  def isBatteryOK(self):
+    batteryOK = True
+    for attribute in self.attributes:
+      batteryOK &= isUpLimitNotReached(self.attributes[attribute],self.MAX_VALUES[attribute])
+      batteryOK &= isDownLimitNotReached(self.attributes[attribute],self.MIN_VALUES[attribute])
+    return batteryOK
 
 def battery_is_ok(temperature, soc, charge_rate):
-  batteryWrong = False
-  batteryWrong |= value_is_out_of_umbrall(temperature,0,45)
-  batteryWrong |= value_is_out_of_umbrall(soc,20,80)
-  batteryWrong |= value_is_out_of_umbrall(charge_rate,max_value=0.8)
-  return not batteryWrong
-  # invalidValues = []
-
-  # if(value_is_out_of_umbrall(temperature,0,45)):
-  #   invalidValues.append("Temperature")
-  # if(value_is_out_of_umbrall(soc,20,80)):
-  #   invalidValues.append("State of charge")
-  # if(value_is_out_of_umbrall(charge_rate,max_value=0.8)):
-  #   invalidValues.append("Charge rate")
-
-  # if(invalidValues):
-  #   outOfRangeAlert(invalidValues)
-  #   return False
-
-  # return True
+  battery_to_test = battery(temperature,soc, charge_rate)
+  return battery_to_test.isBatteryOK()
 
 if __name__ == '__main__':
   #Test everything valid
@@ -64,3 +47,7 @@ if __name__ == '__main__':
 
   #Test everything invalid
   assert(battery_is_ok(-10, 5, 0.9) is False)
+
+
+
+    
