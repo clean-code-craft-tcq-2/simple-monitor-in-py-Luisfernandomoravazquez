@@ -1,68 +1,102 @@
-def isUpLimitNotReached(value, max_value):
-  if(max_value == "NA" or value <= max_value):
-    return True
-  else:
-    return False
 
-def isDownLimitNotReached(value, min_value):
-  if(min_value == "NA" or value >= min_value):
-    return True
-  else:
-    return False
+statusErrorsDev = ["OK","WarningMin","WarningMax","ErrorMin","ErrorMax"]
+statusErrorsEnglish = [" OK"," WARNING close to min"," WARNING close to max"," ERROR under min"," ERROR over max"]
+statusErrorsSpanish = [" correcta"," WARNING cercano al minimo"," WARNING cercano al maximo"," ERROR menor al minimo"," ERROR mayor al maximo"]
 
-def printOverLimit(overLimitAttributes):
-  for attribute in overLimitAttributes:
-    if(overLimitAttributes[attribute] == False):
-      print(attribute + " is over limit")
+statusErrors = statusErrorsEnglish
+class attribute:
+  def __init__(self, name, value, minValue="NA", maxValue="NA", earlyWarningMin="NA", earlyWarningMax="NA"):
+    self.name = name
+    self.value = value
+    self.minValue = minValue
+    self.maxValue = maxValue
+    self.earlyWarningMax = earlyWarningMax
+    self.earlyWarningMin = earlyWarningMin
 
-def printUnderLimit(underLimitAttributes):
-  for attribute in underLimitAttributes:
-    if(underLimitAttributes[attribute] == False):
-      print(attribute + " is under limit")
+  def isMaxValueReached(self):
+    if(self.maxValue == "NA"):
+      return False
+    return(self.value > self.maxValue)
+  def isMinValueReached(self):
+    if(self.minValue == "NA"):
+      return False
+    return(self.value < self.minValue)
+
+  def isValueInEarlyWarningMax(self):
+    if(self.earlyWarningMax == "NA"):
+      return False
+    return(self.value >= self.earlyWarningMax)
+  def isValueInEarlyWarningMin(self):
+    if(self.earlyWarningMin == "NA"):
+      return False
+    return(self.value <= self.earlyWarningMin)
+
+  def getStatus(self):
+    status = 0
+    status += int(self.isValueInEarlyWarningMin())*0b10
+    status += int(self.isValueInEarlyWarningMax())*0b100
+    status += int(self.isMinValueReached())       *0b1000
+    status += int(self.isMaxValueReached())       *0b10000
+    return status
+      
+    
 class battery:
   def __init__(self, temperature, stateOfCharge, chargeRate):
-    self.attributes = {"temperature" : temperature, "stateOfCharge" : stateOfCharge, "chargeRate" : chargeRate}
-
-  MIN_VALUES = {"temperature":0,"stateOfCharge":20,"chargeRate":"NA"}
-  MAX_VALUES = {"temperature":45,"stateOfCharge":80,"chargeRate":0.8}
+    temperatureObject = attribute("temperature",temperature,0,45,4,41)
+    stateOfChargeObject = attribute("stateOfCharge",stateOfCharge,20,80,24,76)
+    chargeRateObject = attribute("chargeRate",chargeRate,"NA",0.8,earlyWarningMax=0.76)
+    self.attributes = {"temperature" : temperatureObject, "stateOfCharge" : stateOfChargeObject, "chargeRate" : chargeRateObject}
   
+  def printAttributeStatus(self):
+    attributeStatus = {}
+    for attribute in self.attributes:
+      print( attribute + statusErrors[ len( bin(self.attributes[attribute].getStatus()) ) - 3] )
+    return attributeStatus
+
 
   def isBatteryOK(self):
-    batteryOK = True
-    underLimitAttributes = {}
-    overLimitAttributes = {}
+    errorDetected = False
     for attribute in self.attributes:
-      overLimitAttributes[attribute] = isUpLimitNotReached(self.attributes[attribute],self.MAX_VALUES[attribute])
-      underLimitAttributes[attribute] = isDownLimitNotReached(self.attributes[attribute],self.MIN_VALUES[attribute])
-      batteryOK &= overLimitAttributes[attribute]
-      batteryOK &= underLimitAttributes[attribute]
-    printOverLimit(overLimitAttributes)
-    printUnderLimit(underLimitAttributes)
-    return batteryOK
+      errorDetected |= bool( int( self.attributes[attribute].getStatus()/8) )
 
-def battery_is_ok(temperature, soc, charge_rate):
-  battery_to_test = battery(temperature,soc, charge_rate)
-  return battery_to_test.isBatteryOK()
+    return not errorDetected
+
+def test_battery(temperature, stateOfCharge, charge_rate):
+  battery_to_test = battery(temperature,stateOfCharge, charge_rate)
+  batteryStatus = battery_to_test.isBatteryOK()
+  # if(batteryStatus == False):
+  battery_to_test.printAttributeStatus()
+  return batteryStatus
 
 if __name__ == '__main__':
-  #Test everything valid
-  assert(battery_is_ok(25, 70, 0.7) is True)
+  print( "########### Test everything valid")
+  assert(test_battery(25, 70, 0.7) is True)
 
-  #Test temperature under limit
-  assert(battery_is_ok(-2, 70, 0.7) is False)
-  #Test temperature over limit
-  assert(battery_is_ok(50, 70, 0.7) is False)
+  print( "########### Test temperature under limit")
+  assert(test_battery(-2, 70, 0.7) is False)
+  print( "########### Test temperature over limit")
+  assert(test_battery(50, 70, 0.7) is False)
+  print( "########### Test temperature close under limit")
+  assert(test_battery(2, 70, 0.7) is True)
+  print( "########### Test temperature close over limit")
+  assert(test_battery(41, 70, 0.7) is True)
 
-  #Test State of charge under limit
-  assert(battery_is_ok(25, 10, 0.7) is False)
-  #Test State of charge over limit
-  assert(battery_is_ok(25, 90, 0.7) is False)
+  print( "########### Test State of charge under limit")
+  assert(test_battery(25, 10, 0.7) is False)
+  print( "########### Test State of charge over limit")
+  assert(test_battery(25, 90, 0.7) is False)
+  print( "########### Test State of charge close under limit")
+  assert(test_battery(25, 21, 0.7) is True)
+  print( "########### Test State of charge close over limit")
+  assert(test_battery(25, 79, 0.7) is True)
 
-  #Test Charge rate over limit
-  assert(battery_is_ok(25, 70, 0.81) is False)
+  print( "########### Test Charge rate over limit")
+  assert(test_battery(25, 70, 0.81) is False)
+  print( "########### Test Charge rate close over limit")
+  assert(test_battery(25, 70, 0.79) is True)
 
-  #Test everything invalid
-  assert(battery_is_ok(-10, 5, 0.9) is False)
+  print( "########### Test everything invalid")
+  assert(test_battery(-10, 5, 0.9) is False)
 
 
 
