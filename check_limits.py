@@ -2,8 +2,16 @@
 statusErrorsDev = ["OK","WarningMin","WarningMax","ErrorMin","ErrorMax"]
 statusErrorsEnglish = [" OK"," WARNING close to min"," WARNING close to max"," ERROR under min"," ERROR over max"]
 statusErrorsSpanish = [" correcta"," WARNING cercano al minimo"," WARNING cercano al maximo"," ERROR menor al minimo"," ERROR mayor al maximo"]
+statusErrorsGerman = [" Korrekt"," WARNUNG nahe min wert"," WARNUNG nahe max wert"," FEHLER unter min wert"," FEHLER über max wert"]
 
-statusErrors = statusErrorsEnglish
+attributesEnglish = { "temperature": "Temperature", "stateOfCharge":"State of charge", "chargeRate":"Charge Rate"}
+attributesSpanish = { "temperature": "Temperatura", "stateOfCharge":"Estado de la carga", "chargeRate":"Tasa de carga"}
+attributesGerman = { "temperature": "Temperatur", "stateOfCharge":"Ladezustand", "chargeRate":"Ladestrom"}
+
+messagesToPrint = { "statusErrors":statusErrorsGerman, "attributesToPrint":attributesGerman}
+
+def Fahrenheit2Celcius(fahrenheit):
+ return (fahrenheit - 32) * 5/9
 class attribute:
   def __init__(self, name, value, minValue="NA", maxValue="NA", earlyWarningMin="NA", earlyWarningMax="NA"):
     self.name = name
@@ -50,7 +58,7 @@ class battery:
   def printAttributeStatus(self):
     attributeStatus = {}
     for attribute in self.attributes:
-      print( attribute + statusErrors[ len( bin(self.attributes[attribute].getStatus()) ) - 3] )
+      print( messagesToPrint["attributesToPrint"][attribute] + messagesToPrint["statusErrors"][ len( bin(self.attributes[attribute].getStatus()) ) - 3] )
     return attributeStatus
 
 
@@ -61,7 +69,9 @@ class battery:
 
     return not errorDetected
 
-def test_battery(temperature, stateOfCharge, charge_rate):
+def test_battery(temperature, stateOfCharge, charge_rate, temperatureUnit = "C"):
+  if(temperatureUnit == "F"):
+    temperature = Fahrenheit2Celcius(temperature)
   battery_to_test = battery(temperature,stateOfCharge, charge_rate)
   batteryStatus = battery_to_test.isBatteryOK()
   # if(batteryStatus == False):
